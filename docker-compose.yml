@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: fgos
+      POSTGRES_PASSWORD: fgos
+      POSTGRES_DB: fgos
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fgos"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.4
+    ports: ["8123:8123", "9000:9000"]
+    volumes: 
+      - chdata:/var/lib/clickhouse
+      - ./clickhouse-users.xml:/etc/clickhouse-server/users.d/users.xml
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  grafana:
+    image: grafana/grafana-oss:10.4.3
+    ports: ["3000:3000"]
+    depends_on: [clickhouse]
+    environment:
+      GF_LOG_LEVEL: error
+      GF_LOG_MODE: console 
+      GF_INSTALL_PLUGINS: "vertamedia-clickhouse-datasource"
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: for_my_study
+    volumes:
+      - ./grafana.ini:/etc/grafana/grafana.ini
+      - grafana-data:/var/lib/grafana
+
+  parser:
+    build: .
+    depends_on: 
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    env_file: [.env]
+
+volumes:
+  pgdata:
+  chdata:
+  grafana-data:
