@@ -75,43 +75,68 @@ python -m src.etl_to_click
 ## 🌐 Дашборд Grafana
 
 ```bash
-# В комплекте есть пример JSON-конфигурации:
-{
-  "title": "Competencies overview",
-  "uid": "comp-overview",
-  "panels": [
-    {
-      "type": "barchart",
-      "title": "Top-20 навыков (вакансии)",
-      "targets": [
-        {
-          "query": "SELECT competency, sum(frequency) AS freq FROM competencies_olap WHERE source='Вакансия' GROUP BY competency ORDER BY freq DESC LIMIT 20"
-        }
-      ],
-      "options": { "orientation": "horizontal" }
-    },
-    {
-      "type": "barchart",
-      "title": "Источник split",
-      "targets": [
-        {
-          "query": "SELECT source, sum(frequency) AS freq FROM competencies_olap GROUP BY source"
-        }
-      ],
-      "options": { "stacking": "percent" }
-    },
-    {
-      "type": "heatmap",
-      "title": "Дыры в ФГОС vs Вакансии",
-      "targets": [
-        {
-          "query": "SELECT competency, source, sum(frequency) AS freq FROM competencies_olap GROUP BY competency, source"
-        }
-      ]
-    }
-  ],
-  "refresh": "30s"
-}
+1. SELECT
+  source,
+  sum(frequency) AS freq
+FROM competencies_olap
+GROUP BY source
+ORDER BY freq DESC
+# - скрипт на соотношение навыков - Bar Chat 
+
+2. SELECT
+    competency,
+    sum(frequency) AS freq
+FROM competencies_olap
+WHERE source = 'Вакансия'
+  AND category = 'SKILL'
+GROUP BY competency
+HAVING freq <= 2               
+ORDER BY competency
+LIMIT 10
+# топ-10 редких навыков с вакансий Bar Chart
+
+3. SELECT
+    competency,
+    sum(frequency) AS freq
+FROM competencies_olap
+WHERE source = 'Вакансия'
+  AND category = 'SKILL'
+GROUP BY competency
+ORDER BY freq DESC
+LIMIT 10
+
+#топ 10 популярных навыков с вакансий - Bar Chart
+
+
+4. 
+
+SELECT
+    competency,           
+    sum(frequency) AS freq
+FROM competencies_olap
+WHERE source   = 'ФГОС'
+  AND category = 'ОПК'
+GROUP BY competency
+ORDER BY freq DESC
+LIMIT 3
+
+
+#топ 3 ОПК - TABLE
+
+5.
+
+
+SELECT
+    competency,           
+    sum(frequency) AS freq
+FROM competencies_olap
+WHERE source   = 'ФГОС'
+  AND category = 'ПК'
+GROUP BY competency
+ORDER BY freq DESC
+LIMIT 3
+
+#топ 3 ПК - TABLE
 ```
 
 ## Полезные команды

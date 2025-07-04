@@ -15,7 +15,6 @@ import sys
 import os
 from urllib.parse import urlparse
 
-# Добавляем путь к src в sys.path для импорта модуля db
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 from . import db
 
@@ -140,7 +139,6 @@ def main() -> None:
             print(f"\n[{i}/{len(VACANCY_URLS)}] {url}\n⚠️ Ошибка: {ex}")
             errors += 1
 
-        # Задержка между запросами
         time.sleep(random.uniform(0.3, 0.8))
 
     print(f"\n🎯 Обработка завершена:")
